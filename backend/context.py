@@ -163,6 +163,8 @@ def assemble_context(
 
     weather = {**weather, "is_day": is_day}
 
+    guidance = weather_guidance(weather)
+
     return {
         "time": now.strftime("%H:%M"),
         "weekday": now.strftime("%A"),
@@ -173,6 +175,7 @@ def assemble_context(
             "lon": lon,
         },
         "weather": weather,
+        "weather_guidance": guidance,
         "sky": {
             "sunset": sunset.strftime("%H:%M"),
             "minutes_to_sunset": minutes_to_sunset,
@@ -206,6 +209,46 @@ def fetch_weather(lat, lon):
 
     return r.json()
 
+def weather_guidance(weather):
+    """Return deterministic guidance for quest generation."""
+
+    condition = weather["condition"]
+    temp = weather["temp_c"]
+    cloud_cover = weather["cloud_cover"]
+
+    if condition in ("rain", "drizzle"):
+        return {
+            "outdoor_ok": False,
+            "sky_ok": False,
+            "guidance": "Avoid outdoor and sky-watching quests. Prefer indoor or sheltered activities.",
+        }
+
+    if condition == "thunderstorm":
+        return {
+            "outdoor_ok": False,
+            "sky_ok": False,
+            "guidance": "Do not recommend outdoor activities. Prefer safe indoor activities.",
+        }
+
+    if temp >= 35:
+        return {
+            "outdoor_ok": True,
+            "sky_ok": True,
+            "guidance": "It is very hot. Avoid strenuous activity and prefer short, gentle activities.",
+        }
+
+    if cloud_cover >= 80:
+        return {
+            "outdoor_ok": True,
+            "sky_ok": False,
+            "guidance": "Cloud cover is high. Avoid stargazing and sky-dependent activities.",
+        }
+
+    return {
+        "outdoor_ok": True,
+        "sky_ok": True,
+        "guidance": "Weather is suitable for normal outdoor activities.",
+    }
 
 def build_context(
     lat=DEFAULT_LAT,
@@ -255,6 +298,13 @@ def build_context(
     now,
     interests=interests,
     )
+
+    # Do not recommend weather-dependent events when conditions are unsuitable.
+    if event:
+        if is_wet(weather):
+            event = None
+        elif weather["cloud_cover"] >= 85 and event["quest_type"] == "sky":
+            event = None
 
     return assemble_context(
         now,
