@@ -1,0 +1,38 @@
+[
+  {
+    "id": "stargazing-1",
+    "title": "Public stargazing night",
+    "quest_type": "sky",
+    "lat": 12.2724,
+    "lon": 76.6700,
+    "start": "2026-10-09T19:30",
+    "placeholder": true
+  },
+  {
+    "id": "runclub-1",
+    "title": "Sunday morning run club",
+    "quest_type": "movement",
+    "lat": 12.3052,
+    "lon": 76.6552,
+    "start": "2026-10-11T06:30",
+    "placeholder": true
+  },
+  {
+    "id": "cleanup-1",
+    "title": "Lakeside community cleanup",
+    "quest_type": "social",
+    "lat": 12.3103,
+    "lon": 76.6342,
+    "start": "2026-10-10T08:00",
+    "placeholder": true
+  },
+  {
+    "id": "birdwalk-1",
+    "title": "Morning bird walk",
+    "quest_type": "nature",
+    "lat": 12.3022,
+    "lon": 76.6746,
+    "start": "2026-10-10T06:15",
+    "placeholder": true
+  }
+]
