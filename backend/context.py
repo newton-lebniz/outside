@@ -4,7 +4,13 @@ from math import radians, sin, cos, asin, sqrt
 
 import httpx
 
-from .config import EVENTS_PATH, DEFAULT_LAT, DEFAULT_LON, DEFAULT_PLACE
+from .config import (
+    EVENTS_PATH,
+    DEFAULT_LAT,
+    DEFAULT_LON,
+    DEFAULT_PLACE,
+    COMPLETIONS_PATH,
+)
 
 OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
 
@@ -55,6 +61,20 @@ def load_events():
     with open(EVENTS_PATH, encoding="utf-8") as f:
         return json.load(f)
 
+def load_completions():
+    with open(COMPLETIONS_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def completed_types_today(now):
+    completions = load_completions()
+    today = now.date().isoformat()
+
+    return [
+        item["quest_type"]
+        for item in completions
+        if item.get("date") == today
+    ]
 
 def nearest_event(
     lat,
@@ -292,12 +312,12 @@ def build_context(
         data["daily"]["sunset"][0]
     ).replace(tzinfo=tz)
 
-    event = nearest_event(
-    lat,
-    lon,
-    now,
-    interests=interests,
-    )
+    completed_today = completed_types_today(now)
+
+    event = nearest_event(lat, lon, now, interests=interests)
+
+    if event and event["quest_type"] in completed_today:
+        event = None
 
     # Do not recommend weather-dependent events when conditions are unsuitable.
     if event:
@@ -307,15 +327,15 @@ def build_context(
             event = None
 
     return assemble_context(
-        now,
-        lat,
-        lon,
-        place,
-        weather,
-        sunrise,
-        sunset,
-        event,
-        completed_types or [],
-        interests or [],
-        prefers_short,
-    )
+    now,
+    lat,
+    lon,
+    place,
+    weather,
+    sunrise,
+    sunset,
+    event,
+    completed_today,
+    interests or [],
+    prefers_short,
+)
