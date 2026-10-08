@@ -56,10 +56,51 @@ def load_events():
         return json.load(f)
 
 
-def nearest_event(lat, lon, now, events=None, max_km=5.0, window_hours=36):
-    """Closest upcoming event inside the distance and time window, or None."""
+def nearest_event(
+    lat,
+    lon,
+    now,
+    events=None,
+    interests=None,
+    max_km=5.0,
+    window_hours=36,
+):
+    """Closest relevant upcoming event inside the distance/time window."""
+
     events = load_events() if events is None else events
-    best = None
+    interests = interests or []
+
+    interest_map = {
+        "astronomy": "sky",
+        "stars": "sky",
+        "stargazing": "sky",
+        "sky": "sky",
+        "running": "movement",
+        "run": "movement",
+        "fitness": "movement",
+        "exercise": "movement",
+        "movement": "movement",
+        "community": "social",
+        "social": "social",
+        "volunteering": "social",
+        "people": "social",
+        "birds": "nature",
+        "birdwatching": "nature",
+        "wildlife": "nature",
+        "nature": "nature",
+        "outdoors": "nature",
+        "exploring": "exploration",
+        "exploration": "exploration",
+        "adventure": "exploration",
+    }
+
+    preferred_types = {
+        interest_map[i.lower()]
+        for i in interests
+        if i.lower() in interest_map
+    }
+
+    candidates = []
 
     for e in events:
         start = datetime.fromisoformat(e["start"]).replace(tzinfo=now.tzinfo)
@@ -73,13 +114,31 @@ def nearest_event(lat, lon, now, events=None, max_km=5.0, window_hours=36):
         if dist > max_km:
             continue
 
-        if best is None or dist < best["distance_km"]:
-            best = {
+        relevant = e["quest_type"] in preferred_types
+
+        candidates.append(
+            {
                 **e,
                 "distance_km": round(dist, 1),
                 "walk_minutes": round(dist * 12),
                 "starts_in_minutes": int(hours_until * 60),
+                "_relevant": relevant,
             }
+        )
+
+    if not candidates:
+        return None
+
+    relevant = [e for e in candidates if e["_relevant"]]
+
+    pool = relevant if relevant else candidates
+
+    best = min(
+        pool,
+        key=lambda e: (e["distance_km"], e["starts_in_minutes"]),
+    )
+
+    best.pop("_relevant", None)
 
     return best
 
@@ -190,7 +249,12 @@ def build_context(
         data["daily"]["sunset"][0]
     ).replace(tzinfo=tz)
 
-    event = nearest_event(lat, lon, now)
+    event = nearest_event(
+    lat,
+    lon,
+    now,
+    interests=interests,
+    )
 
     return assemble_context(
         now,
