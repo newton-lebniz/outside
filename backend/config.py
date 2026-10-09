@@ -3,6 +3,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 EVENTS_PATH = BASE_DIR / "events.json"
+COMPLETIONS_PATH = BASE_DIR / "completions.json"
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 
