@@ -1,14 +1,5 @@
 import os
-from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent
-EVENTS_PATH = BASE_DIR / "events.json"
-COMPLETIONS_PATH = BASE_DIR / "completions.json"
-
-OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
-
-MODEL = os.getenv("OUTSIDE_MODEL", "gemma3:1b")
-
-DEFAULT_LAT = 12.2958
-DEFAULT_LON = 76.6394
-DEFAULT_PLACE = "Mysuru, India"
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3:4b")
+LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT", "30"))

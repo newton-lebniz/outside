@@ -1,0 +1,86 @@
+[
+  {
+    "case_id": "1_morning_clear",
+    "source": "fallback",
+    "rules_ok": true,
+    "quest": {
+      "title": "Fresh Air Exploration",
+      "description": "Step outside for a relaxing walk around your neighborhood.",
+      "duration_mins": 25,
+      "xp_reward": 200,
+      "is_special": false
+    }
+  },
+  {
+    "case_id": "2_hot_after_run",
+    "source": "fallback",
+    "rules_ok": true,
+    "quest": {
+      "title": "Shaded Hydration Stroll",
+      "description": "Walk slowly in shaded paths with a bottle of water.",
+      "duration_mins": 20,
+      "xp_reward": 150,
+      "is_special": false
+    }
+  },
+  {
+    "case_id": "3_sunset_clear",
+    "source": "fallback",
+    "rules_ok": true,
+    "quest": {
+      "title": "Fresh Air Exploration",
+      "description": "Step outside for a relaxing walk around your neighborhood.",
+      "duration_mins": 25,
+      "xp_reward": 200,
+      "is_special": false
+    }
+  },
+  {
+    "case_id": "4_sunset_cloudy",
+    "source": "fallback",
+    "rules_ok": true,
+    "quest": {
+      "title": "Fresh Air Exploration",
+      "description": "Step outside for a relaxing walk around your neighborhood.",
+      "duration_mins": 25,
+      "xp_reward": 200,
+      "is_special": false
+    }
+  },
+  {
+    "case_id": "5_stargazing_event",
+    "source": "fallback",
+    "rules_ok": true,
+    "quest": {
+      "title": "Attend Lyrid Meteor Shower Peak",
+      "description": "Walk over to Lyrid Meteor Shower Peak and enjoy the view.",
+      "duration_mins": 32,
+      "xp_reward": 500,
+      "is_special": true
+    }
+  },
+  {
+    "case_id": "6_rain",
+    "source": "fallback",
+    "rules_ok": true,
+    "quest": {
+      "title": "Sheltered Porch Stride",
+      "description": "Take a short walk under covered areas to feel the cool rain air.",
+      "duration_mins": 15,
+      "xp_reward": 100,
+      "is_special": false
+    }
+  },
+  {
+    "case_id": "7_cloudy_night",
+    "source": "fallback",
+    "rules_ok": true,
+    "quest": {
+      "title": "Fresh Air Exploration",
+      "description": "Step outside for a relaxing walk around your neighborhood.",
+      "duration_mins": 25,
+      "xp_reward": 200,
+      "is_special": false
+    }
+  }
+]
