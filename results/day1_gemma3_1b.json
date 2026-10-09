@@ -1,0 +1,233 @@
+{
+  "1_morning_clear": {
+    "llm": {
+      "quest": {
+        "quest_type": "nature",
+        "title": "Bird Watcher",
+        "action": "Observe butterflies fluttering around a patch of wildflowers near the lake, focusing on the details of the landscape.",
+        "duration_minutes": 30,
+        "reason": "The weather is clear and pleasant, offering a chance for a peaceful observation of nature without needing to use a phone.",
+        "xp": 200,
+        "is_special": false,
+        "event_id": null,
+        "walk_minutes": null
+      },
+      "meta": {
+        "model": "gemma3:1b",
+        "source": "llm",
+        "attempts": 1,
+        "last_error": null,
+        "latency_s": 9.7
+      }
+    },
+    "baseline": {
+      "quest_type": "movement",
+      "title": "Move your body",
+      "action": "Walk or run 1 km, then finish with 2 minutes of stretching.",
+      "duration_minutes": 15,
+      "reason": "Comfortable weather and no movement logged today.",
+      "xp": 125,
+      "is_special": false,
+      "event_id": null,
+      "walk_minutes": null
+    }
+  },
+  "2_hot_after_run": {
+    "llm": {
+      "quest": {
+        "quest_type": "nature",
+        "title": "Bird Watching",
+        "action": "Observe local birds. Spend a few minutes focusing on observing and appreciating the wildlife around you. It\u2019s a great way to connect with nature without being glued to your phone.",
+        "duration_minutes": 30,
+        "reason": "Focusing on nature provides a welcome break from screen time.",
+        "xp": 200,
+        "is_special": false,
+        "event_id": null,
+        "walk_minutes": null
+      },
+      "meta": {
+        "model": "gemma3:1b",
+        "source": "llm",
+        "attempts": 2,
+        "last_error": null,
+        "latency_s": 20.83
+      }
+    },
+    "baseline": {
+      "quest_type": "nature",
+      "title": "Shade hunt",
+      "action": "Find a tree you've never consciously noticed. Sit beneath it for 3 minutes.",
+      "duration_minutes": 10,
+      "reason": "It's hot, so we skip exercise and find shade.",
+      "xp": 100,
+      "is_special": false,
+      "event_id": null,
+      "walk_minutes": null
+    }
+  },
+  "3_sunset_clear": {
+    "llm": {
+      "quest": {
+        "quest_type": "social",
+        "title": "Share a Sunset",
+        "action": "Observe the evening sky.",
+        "duration_minutes": 30,
+        "reason": "To enjoy a peaceful moment and appreciate the beauty of the sunset.",
+        "xp": 200,
+        "is_special": false,
+        "event_id": null,
+        "walk_minutes": null
+      },
+      "meta": {
+        "model": "gemma3:1b",
+        "source": "llm",
+        "attempts": 1,
+        "last_error": null,
+        "latency_s": 7.86
+      }
+    },
+    "baseline": {
+      "quest_type": "sky",
+      "title": "Chase the sunset",
+      "action": "Find an unobstructed western view and watch the sunset for 5 minutes without touching your phone.",
+      "duration_minutes": 25,
+      "reason": "Sunset is in 20 minutes and the sky is clear enough.",
+      "xp": 175,
+      "is_special": false,
+      "event_id": null,
+      "walk_minutes": null
+    }
+  },
+  "4_sunset_cloudy": {
+    "llm": {
+      "quest": {
+        "quest_type": "nature",
+        "title": "Riverbank Stroll",
+        "action": "Find a smooth, shaded spot along a riverbank. Observe the natural setting \u2013 plants, wildlife if possible, and the gentle flow of the water. Don\u2019t move too much \u2013 simply sit and appreciate the surroundings for 10-15 minutes.",
+        "duration_minutes": 15,
+        "reason": "Provides a relaxing, immersive experience with minimal phone use.",
+        "xp": 125,
+        "is_special": false,
+        "event_id": null,
+        "walk_minutes": null
+      },
+      "meta": {
+        "model": "gemma3:1b",
+        "source": "llm",
+        "attempts": 2,
+        "last_error": null,
+        "latency_s": 22.66
+      }
+    },
+    "baseline": {
+      "quest_type": "movement",
+      "title": "Move your body",
+      "action": "Walk or run 1 km, then finish with 2 minutes of stretching.",
+      "duration_minutes": 15,
+      "reason": "Comfortable weather and no movement logged today.",
+      "xp": 125,
+      "is_special": false,
+      "event_id": null,
+      "walk_minutes": null
+    }
+  },
+  "5_stargazing_event": {
+    "llm": {
+      "quest": {
+        "quest_type": "sky",
+        "title": "Star Gazing Night",
+        "action": "Attend Public Stargazing Night",
+        "duration_minutes": 1,
+        "reason": "It\u2019s a beautiful evening and a great way to enjoy the outdoors outside of your phone.",
+        "xp": 500,
+        "is_special": true,
+        "event_id": "stargazing-test",
+        "walk_minutes": 38
+      },
+      "meta": {
+        "model": "gemma3:1b",
+        "source": "llm",
+        "attempts": 1,
+        "last_error": null,
+        "latency_s": 9.33
+      }
+    },
+    "baseline": {
+      "quest_type": "sky",
+      "title": "Go: Public stargazing night",
+      "action": "Public stargazing night is 3.2 km away and starts in 1 h 30 min. Your mission: go. About 38 min on foot.",
+      "duration_minutes": 38,
+      "reason": "A real event is happening nearby.",
+      "xp": 500,
+      "is_special": true,
+      "event_id": "stargazing-test",
+      "walk_minutes": 38
+    }
+  },
+  "6_rain": {
+    "llm": {
+      "quest": {
+        "quest_type": "nature",
+        "title": "Rain listening",
+        "action": "Step outside under cover and find three different sounds of the rain.",
+        "duration_minutes": 10,
+        "reason": "It's wet outside, so we keep it short and sheltered.",
+        "xp": 100,
+        "is_special": false,
+        "event_id": null,
+        "walk_minutes": null
+      },
+      "meta": {
+        "model": "gemma3:1b",
+        "source": "fallback",
+        "attempts": 2,
+        "last_error": "quest too long for wet weather",
+        "latency_s": 18.46
+      }
+    },
+    "baseline": {
+      "quest_type": "nature",
+      "title": "Rain listening",
+      "action": "Step outside under cover and find three different sounds of the rain.",
+      "duration_minutes": 10,
+      "reason": "It's wet outside, so we keep it short and sheltered.",
+      "xp": 100,
+      "is_special": false,
+      "event_id": null,
+      "walk_minutes": null
+    }
+  },
+  "7_cloudy_night": {
+    "llm": {
+      "quest": {
+        "quest_type": "exploration",
+        "title": "New street",
+        "action": "Take a 15-minute walk and find three different sounds around you.",
+        "duration_minutes": 15,
+        "reason": "A gentle way to get outside no matter the conditions.",
+        "xp": 125,
+        "is_special": false,
+        "event_id": null,
+        "walk_minutes": null
+      },
+      "meta": {
+        "model": "gemma3:1b",
+        "source": "fallback",
+        "attempts": 2,
+        "last_error": "user prefers short activities (30 min or less)",
+        "latency_s": 22.34
+      }
+    },
+    "baseline": {
+      "quest_type": "exploration",
+      "title": "New street",
+      "action": "Take a 15-minute walk and find three different sounds around you.",
+      "duration_minutes": 15,
+      "reason": "A gentle way to get outside no matter the conditions.",
+      "xp": 125,
+      "is_special": false,
+      "event_id": null,
+      "walk_minutes": null
+    }
+  }
+}

@@ -1,106 +1,78 @@
 import json
-import os
-from datetime import datetime, timezone
-from backend.quest_engine import generate_quest
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
-TEST_CASES = [
-    {
-        "id": "1_morning_clear",
-        "user_profile": {"fitness_level": "moderate", "recent_activities": []},
-        "weather": {"temp_c": 18, "condition": "Clear", "is_day": 1, "uv_index": 2},
-        "time_iso": "2026-05-10T08:00:00Z",
-        "events": []
-    },
-    {
-        "id": "2_hot_after_run",
-        "user_profile": {"fitness_level": "active", "recent_activities": ["5k_run"]},
-        "weather": {"temp_c": 34, "condition": "Sunny", "is_day": 1, "uv_index": 8},
-        "time_iso": "2026-05-10T14:00:00Z",
-        "events": []
-    },
-    {
-        "id": "3_sunset_clear",
-        "user_profile": {"fitness_level": "casual", "recent_activities": []},
-        "weather": {"temp_c": 22, "condition": "Clear", "is_day": 1, "uv_index": 1},
-        "time_iso": "2026-05-10T19:15:00Z",
-        "events": []
-    },
-    {
-        "id": "4_sunset_cloudy",
-        "user_profile": {"fitness_level": "casual", "recent_activities": []},
-        "weather": {"temp_c": 20, "condition": "Overcast", "is_day": 1, "uv_index": 0},
-        "time_iso": "2026-05-10T19:15:00Z",
-        "events": []
-    },
-    {
-        "id": "5_stargazing_event",
-        "user_profile": {"fitness_level": "casual", "recent_activities": []},
-        "weather": {"temp_c": 16, "condition": "Clear", "is_day": 0, "uv_index": 0},
-        "time_iso": "2026-05-10T21:00:00Z",
-        "events": [{
-            "id": "evt_meteor_01",
-            "title": "Lyrid Meteor Shower Peak",
-            "type": "astronomy",
-            "start": "2026-05-10T20:30:00Z",
-            "end": "2026-05-10T23:00:00Z",
-            "walk_time_mins": 12
-        }]
-    },
-    {
-        "id": "6_rain",
-        "user_profile": {"fitness_level": "moderate", "recent_activities": []},
-        "weather": {"temp_c": 15, "condition": "Light Rain", "is_day": 1, "uv_index": 1},
-        "time_iso": "2026-05-10T11:00:00Z",
-        "events": []
-    },
-    {
-        "id": "7_cloudy_night",
-        "user_profile": {"fitness_level": "moderate", "recent_activities": []},
-        "weather": {"temp_c": 14, "condition": "Cloudy", "is_day": 0, "uv_index": 0},
-        "time_iso": "2026-05-10T22:00:00Z",
-        "events": []
-    }
-]
+from .config import MODEL, DEFAULT_LAT, DEFAULT_LON, DEFAULT_PLACE
+from .context import assemble_context
+from .models import LLMQuest
+from .quest_engine import generate_quest, validate
 
-def run_tests():
-    os.makedirs("results", exist_ok=True)
-    results = []
+IST = timezone(timedelta(hours=5, minutes=30))
 
-    print("=" * 60)
-    print("RUNNING OUTSIDE DAY 1 CONTEXT TESTS")
-    print("=" * 60)
 
-    for case in TEST_CASES:
-        print(f"\n[Testing Case: {case['id']}]")
-        quest, meta = generate_quest(
-            user_profile=case["user_profile"],
-            weather=case["weather"],
-            time_iso=case["time_iso"],
-            events=case["events"]
-        )
+def at(h, m):
+    return datetime(2026, 10, 9, h, m, tzinfo=IST)
 
-        output = {
-            "case_id": case["id"],
-            "source": meta.get("source"),
-            "rules_ok": meta.get("rules_ok"),
-            "quest": quest.dict() if hasattr(quest, "dict") else quest
-        }
-        results.append(output)
 
-        print(f"  Source   : {meta.get('source')}")
-        print(f"  Rules OK : {meta.get('rules_ok')}")
-        print(f"  Title    : {output['quest'].get('title')}")
-        print(f"  XP       : {output['quest'].get('xp_reward')}")
-        if meta.get("last_error"):
-            print(f"  Error    : {meta.get('last_error')}")
+SUNRISE, SUNSET = at(6, 10), at(18, 5)
 
-    out_file = "results/day1_gemma3_4b.json"
-    with open(out_file, "w") as f:
-        json.dump(results, f, indent=2)
 
-    print("\n" + "=" * 60)
-    print(f"SUCCESS: Results saved to {out_file}")
-    print("=" * 60)
+def W(condition, temp, cloud, precip=0.0, wind=8):
+    return {"condition": condition, "temp_c": temp, "cloud_cover": cloud,
+            "wind_kmh": wind, "precipitation_mm": precip}
+
+
+STARGAZING = {
+    "id": "stargazing-test", "title": "Public stargazing night", "quest_type": "sky",
+    "distance_km": 3.2, "walk_minutes": 38, "starts_in_minutes": 90,
+}
+
+
+def ctx(now, weather, done=(), interests=("fitness",), event=None):
+    return assemble_context(now, DEFAULT_LAT, DEFAULT_LON, DEFAULT_PLACE, weather,
+                            SUNRISE, SUNSET, event, done, interests, True)
+
+
+CASES = {
+    "1_morning_clear":    ctx(at(8, 0),   W("clear", 22, 5)),
+    "2_hot_after_run":    ctx(at(14, 0),  W("clear", 36, 10), done=["movement"]),
+    "3_sunset_clear":     ctx(at(17, 45), W("clear", 26, 8), interests=("astronomy",)),
+    "4_sunset_cloudy":    ctx(at(17, 45), W("overcast", 25, 95), interests=("astronomy",)),
+    "5_stargazing_event": ctx(at(18, 30), W("clear", 24, 5), interests=("astronomy",), event=STARGAZING),
+    "6_rain":             ctx(at(11, 0),  W("rain", 21, 100, precip=3.0)),
+    "7_cloudy_night":     ctx(at(20, 30), W("overcast", 23, 90), interests=("astronomy",)),
+}
+
+
+def rules_ok(quest, ctx_):
+    """Re-check the final quest (LLM or fallback) against the hard rules."""
+    q = LLMQuest(quest_type=quest["quest_type"], title=quest["title"], action=quest["action"],
+                 duration_minutes=quest["duration_minutes"], reason=quest["reason"])
+    return validate(q, ctx_) is None
+
+
+def main():
+    print(f"MODEL: {MODEL}\n")
+    results = {}
+    for name, c in CASES.items():
+        out = generate_quest(c, use_llm=True)
+        base = generate_quest(c, use_llm=False)
+        q, m = out["quest"], out["meta"]
+        print("=" * 60)
+        print(name)
+        print(f"[{m['source']}] {q['quest_type'].upper()}  {q['title']}  ({q['duration_minutes']} min, +{q['xp']} XP)")
+        print(q["action"])
+        print(f"why: {q['reason']}")
+        print(f"special={q['is_special']}  attempts={m['attempts']}  latency={m['latency_s']}s  "
+              f"rules_ok={rules_ok(q, c)}  last_error={m['last_error']}")
+        print(f"-- rule-based baseline: {base['quest']['title']}")
+        results[name] = {"llm": out, "baseline": base["quest"]}
+
+    Path("results").mkdir(exist_ok=True)
+    out_path = Path("results") / f"day1_{MODEL.replace(':', '_').replace('/', '_')}.json"
+    out_path.write_text(json.dumps(results, indent=2), encoding="utf-8")
+    print(f"\nSaved to {out_path}")
+
 
 if __name__ == "__main__":
-    run_tests()
+    main()

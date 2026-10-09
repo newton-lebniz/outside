@@ -62,8 +62,13 @@ def load_events():
         return json.load(f)
 
 def load_completions():
-    with open(COMPLETIONS_PATH, encoding="utf-8") as f:
-        return json.load(f)
+    """completions.json is gitignored, so it won't exist on a fresh clone."""
+    try:
+        with open(COMPLETIONS_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
 
 
 def completed_types_today(now):
