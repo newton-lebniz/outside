@@ -110,6 +110,18 @@ def preferred_types(interests):
     return sorted({INTEREST_MAP[i.lower()] for i in (interests or []) if i.lower() in INTEREST_MAP})
 
 
+def resolve_event(e, lat, lon, now):
+    """Demo events can be placed relative to the user: offset_km = [east, north], start_in_hours."""
+    e = dict(e)
+    if "offset_km" in e:
+        east, north = e["offset_km"]
+        e["lat"] = lat + north / 111.0
+        e["lon"] = lon + east / (111.0 * cos(radians(lat)))
+    if "start_in_hours" in e:
+        e["start"] = (now + timedelta(hours=e["start_in_hours"])).strftime("%Y-%m-%dT%H:%M")
+    return e
+
+
 def nearest_event(
     lat,
     lon,
@@ -135,9 +147,7 @@ def nearest_event(
     candidates = []
 
     for e in events:
-        if e.get("placeholder", False):
-            continue
-
+        e = resolve_event(e, lat, lon, now)
         start = datetime.fromisoformat(e["start"]).replace(tzinfo=now.tzinfo)
         hours_until = (start - now).total_seconds() / 3600
 
@@ -296,7 +306,7 @@ def build_context(
     prefers_short=True,
     sim_weather=None,
     sim_time=None,
-    use_events=True,
+    events_mode="real",  # "real" = real events only, "demo" = also demo events, "none" = no events
 ):
     """Real context: live weather from Open-Meteo. sim_* args are for demos/tests."""
 
@@ -332,7 +342,11 @@ def build_context(
 
     completed_today = completed_types_today(now)
 
-    event = nearest_event(lat, lon, now, interests=interests) if use_events else None
+    if events_mode == "none":
+        event = None
+    else:
+        pool = [e for e in load_events() if events_mode == "demo" or not e.get("placeholder")]
+        event = nearest_event(lat, lon, now, events=pool, interests=interests)
 
     if event and event["quest_type"] in completed_today:
         event = None

@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from .config import BASE_DIR, COMPLETIONS_PATH, DEFAULT_LAT, DEFAULT_LON, DEFAULT_PLACE, MODEL
+from .config import BASE_DIR, COMPLETIONS_PATH, DEFAULT_LAT, DEFAULT_LON, DEFAULT_PLACE, MODEL, OLLAMA_URL
 from .context import build_context, load_completions
 from .llm import warm_up
 from .quest_engine import generate_quest
@@ -33,7 +33,7 @@ class QuestRequest(BaseModel):
     sim_weather: str | None = None   # clear | cloudy | rain | hot
     sim_time: str | None = None      # "19:42"
     use_llm: bool = True             # False = rule-based baseline
-    use_events: bool = True          # False = ignore nearby events (demo control)
+    events_mode: str = "real"        # real | demo | none (demo control)
 
 
 class CompleteQuestRequest(BaseModel):
@@ -56,7 +56,16 @@ def _stats():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model": MODEL}
+    """Also reports whether Ollama is reachable and the model is pulled."""
+    info = {"status": "ok", "model": MODEL, "ollama": False, "model_ready": False}
+    try:
+        tags = httpx.get(f"{OLLAMA_URL}/api/tags", timeout=2).json()
+        names = [m.get("name", "") for m in tags.get("models", [])]
+        info["ollama"] = True
+        info["model_ready"] = any(n == MODEL or n.split(":")[0] == MODEL for n in names)
+    except Exception:
+        pass
+    return info
 
 
 @app.get("/stats")
@@ -66,6 +75,8 @@ def stats():
 
 @app.post("/quest")
 def create_quest(request: QuestRequest):
+    if request.events_mode not in ("real", "demo", "none"):
+        raise HTTPException(400, "events_mode must be one of: real, demo, none")
     try:
         ctx = build_context(
             lat=request.lat,
@@ -74,7 +85,7 @@ def create_quest(request: QuestRequest):
             interests=request.interests,
             sim_weather=request.sim_weather,
             sim_time=request.sim_time,
-            use_events=request.use_events,
+            events_mode=request.events_mode,
         )
     except KeyError:
         raise HTTPException(400, "sim_weather must be one of: clear, cloudy, rain, hot")

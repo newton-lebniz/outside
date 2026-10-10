@@ -217,7 +217,7 @@
     if (w.is_day && s.minutes_to_sunset >= 0) out.push(`Sunset is in ${fmtMin(s.minutes_to_sunset)}.`);
     else out.push(`The sun set at ${s.sunset}.`);
     const ev = ctx.nearby_event;
-    if (ev) out.push(`${ev.title} is ${ev.distance_km} km away and starts in ${fmtMin(ev.starts_in_minutes)}.`);
+    if (ev) out.push(`${ev.title}${ev.placeholder ? " (demo event)" : ""} is ${ev.distance_km} km away and starts in ${fmtMin(ev.starts_in_minutes)}.`);
     return out;
   }
 
@@ -276,7 +276,7 @@
     startLoading();
     const body = {
       interests: state.interests, lat: state.loc.lat, lon: state.loc.lon, place: state.loc.place,
-      use_llm: !$("#rules-only").checked, use_events: !$("#no-events").checked,
+      use_llm: !$("#rules-only").checked, events_mode: $("#events-mode").value,
     };
     if ($("#sim-weather").value) body.sim_weather = $("#sim-weather").value;
     if ($("#sim-time").value) body.sim_time = $("#sim-time").value;

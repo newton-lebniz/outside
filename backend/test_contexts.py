@@ -1,8 +1,11 @@
 import json
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from .config import MODEL, DEFAULT_LAT, DEFAULT_LON, DEFAULT_PLACE
+import httpx
+
+from .config import MODEL, OLLAMA_URL, DEFAULT_LAT, DEFAULT_LON, DEFAULT_PLACE
 from .context import assemble_context
 from .models import LLMQuest
 from .quest_engine import generate_quest, validate
@@ -51,7 +54,19 @@ def rules_ok(quest, ctx_):
     return validate(q, ctx_) is None
 
 
+def check_ollama():
+    """Stop early instead of saving a results file full of fallbacks."""
+    try:
+        tags = httpx.get(f"{OLLAMA_URL}/api/tags", timeout=3).json()
+    except Exception:
+        sys.exit(f"Ollama is not reachable at {OLLAMA_URL}. Start Ollama, then run this again.")
+    names = [m.get("name", "") for m in tags.get("models", [])]
+    if not any(n == MODEL or n.split(":")[0] == MODEL for n in names):
+        sys.exit(f"Model '{MODEL}' is not pulled. Run: ollama pull {MODEL}\nInstalled: {', '.join(names) or 'none'}")
+
+
 def main():
+    check_ollama()
     print(f"MODEL: {MODEL}\n")
     results = {}
     for name, c in CASES.items():

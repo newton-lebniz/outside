@@ -1,38 +1,34 @@
 [
   {
-    "id": "stargazing-1",
+    "id": "demo-stargazing",
     "title": "Public stargazing night",
     "quest_type": "sky",
-    "lat": 12.2724,
-    "lon": 76.6700,
-    "start": "2026-10-09T19:30",
+    "offset_km": [1.9, 2.6],
+    "start_in_hours": 2,
     "placeholder": true
   },
   {
-    "id": "runclub-1",
+    "id": "demo-runclub",
     "title": "Sunday morning run club",
     "quest_type": "movement",
-    "lat": 12.3052,
-    "lon": 76.6552,
-    "start": "2026-10-11T06:30",
+    "offset_km": [0.9, 1.0],
+    "start_in_hours": 11,
     "placeholder": true
   },
   {
-    "id": "cleanup-1",
-    "title": "Lakeside community cleanup",
-    "quest_type": "social",
-    "lat": 12.3103,
-    "lon": 76.6342,
-    "start": "2026-10-10T08:00",
-    "placeholder": true
-  },
-  {
-    "id": "birdwalk-1",
+    "id": "demo-birdwalk",
     "title": "Morning bird walk",
     "quest_type": "nature",
-    "lat": 12.3022,
-    "lon": 76.6746,
-    "start": "2026-10-10T06:15",
+    "offset_km": [-1.5, 1.4],
+    "start_in_hours": 9,
+    "placeholder": true
+  },
+  {
+    "id": "demo-cleanup",
+    "title": "Lakeside community cleanup",
+    "quest_type": "social",
+    "offset_km": [-2.8, -2.2],
+    "start_in_hours": 15,
     "placeholder": true
   }
 ]

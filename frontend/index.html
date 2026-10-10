@@ -62,7 +62,13 @@
               <button type="button" class="link" id="time-live">Live</button>
             </span>
           </label>
-          <label class="check"><input type="checkbox" id="no-events"> Hide nearby events</label>
+          <label>Nearby events
+            <select id="events-mode">
+              <option value="real">Real events only</option>
+              <option value="demo">Include demo events</option>
+              <option value="none">No events</option>
+            </select>
+          </label>
           <label class="check"><input type="checkbox" id="rules-only"> Rules only, no model</label>
         </div>
         <button class="btn secondary wide" id="recheck" type="button">Check again</button>
