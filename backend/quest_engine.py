@@ -1,7 +1,7 @@
 import time
 
 from .config import MODEL
-from .context import is_wet
+from .context import is_wet, preferred_types
 from .fallback import fallback_quest, fmt_minutes
 from .llm import generate_json
 from .models import LLMQuest, make_quest
@@ -17,7 +17,7 @@ Rules:
 - Do not give a movement quest if the user already did movement today.
 - Prefer quests that need almost no phone use. Never require taking photos.
 - Never invent events, places or facts that are not in the context.
-- Keep the title under 6 words and the action under 2 sentences.
+- Keep the title under 6 words. The action is one or two concrete sentences saying exactly what to do and where.
 - duration_minutes is an integer. If the user prefers short activities, keep it at 30 or less.
 - reason is one short sentence explaining why this quest fits right now.
 Reply with JSON only."""
@@ -43,6 +43,16 @@ def context_to_prompt(ctx):
         f"USER INTERESTS: {', '.join(u['interests']) or 'none given'}",
         f"USER PREFERS: {'short activities' if u['prefers_short'] else 'any length'}",
     ]
+    pref = preferred_types(u["interests"])
+    if pref:
+        lines.append(
+            f"USER'S PREFERRED QUEST TYPES: {', '.join(pref)} (choose one of these when the weather and sky rules "
+            "allow, unless that type was already done today)"
+        )
+    if (w["is_day"] and 0 <= s["minutes_to_sunset"] <= 45 and w["cloud_cover"] < 70
+            and not is_wet(w) and "sky" not in ctx["today"]["completed_types"]):
+        lines.append(f"SKY NOTE: sunset is in {s['minutes_to_sunset']} minutes and the sky is clear. "
+                     "Watching the sunset is a strong option.")
     if ev:
         lines.append(
             f"NEARBY EVENT: {ev['title']}, {ev['distance_km']} km away "
@@ -61,8 +71,8 @@ def validate(q, ctx):
     """Hard rules. Returns an error string, or None if the quest is acceptable."""
     if not (3 <= len(q.title) <= 60):
         return "title length must be 3-60 characters"
-    if not (10 <= len(q.action) <= 300):
-        return "action length must be 10-300 characters"
+    if not (30 <= len(q.action) <= 300):
+        return "action must be one or two concrete sentences (30-300 characters)"
     if not (1 <= q.duration_minutes <= 90):
         return "duration_minutes must be between 1 and 90"
 
@@ -114,8 +124,9 @@ def generate_quest(ctx, use_llm=True):
                 meta["last_error"] = err
                 feedback = f"\n\nYour previous reply was rejected: {err}. Choose a different quest."
                 continue
-            quest = make_quest(q.quest_type, q.title, q.action, q.duration_minutes,
-                               q.reason, event=ctx["nearby_event"])
+            ev = ctx["nearby_event"]
+            minutes = max(q.duration_minutes, ev["walk_minutes"], 30) if ev else q.duration_minutes
+            quest = make_quest(q.quest_type, q.title, q.action, minutes, q.reason, event=ev)
             meta["last_error"] = None
             break
 

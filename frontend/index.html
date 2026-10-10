@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#7EC3F0">
+  <title>Outside</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='%23F2C230'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-sky="day">
+  <main id="app">
+    <header class="top">
+      <span class="brand">Outside</span>
+      <div class="level" id="level" hidden>
+        <span id="level-text"></span>
+        <span class="bar" aria-hidden="true"><span id="level-fill"></span></span>
+      </div>
+    </header>
+
+    <div id="scene" class="scene" aria-live="polite"></div>
+
+    <!-- 1. Onboarding -->
+    <section id="screen-onboard" class="screen" hidden>
+      <div class="paper">
+        <h1>What gets you outside?</h1>
+        <p class="hint">Pick any. Quests lean toward these when the weather allows.</p>
+        <div id="interest-chips" class="chips" role="group" aria-label="Interests"></div>
+
+        <h2>Where are you?</h2>
+        <p class="hint">Your location goes to the server running on this machine. Weather is looked up with coordinates rounded to about 1 km.</p>
+        <div class="stack">
+          <button class="btn secondary" id="loc-geo" type="button">Use my location</button>
+          <button class="btn secondary" id="loc-demo" type="button">Use the demo location</button>
+        </div>
+        <p id="loc-status" class="status" role="status"></p>
+
+        <button class="btn primary wide" id="onboard-go" type="button" disabled>Find my first quest</button>
+      </div>
+    </section>
+
+    <!-- 2. Home -->
+    <section id="screen-home" class="screen" hidden>
+      <p id="banner" class="banner" role="status" hidden></p>
+      <div id="quest-area"></div>
+
+      <details class="demo" id="demo">
+        <summary>Demo controls</summary>
+        <div class="demo-grid">
+          <label>Weather
+            <select id="sim-weather">
+              <option value="">Live weather</option>
+              <option value="clear">Clear sky</option>
+              <option value="cloudy">Heavy cloud</option>
+              <option value="rain">Rain</option>
+              <option value="hot">Hot day</option>
+            </select>
+          </label>
+          <label>Time of day
+            <span class="inline">
+              <input type="time" id="sim-time">
+              <button type="button" class="link" id="time-live">Live</button>
+            </span>
+          </label>
+          <label class="check"><input type="checkbox" id="no-events"> Hide nearby events</label>
+          <label class="check"><input type="checkbox" id="rules-only"> Rules only, no model</label>
+        </div>
+        <button class="btn secondary wide" id="recheck" type="button">Check again</button>
+        <button class="link" id="change-setup" type="button">Change interests or location</button>
+      </details>
+    </section>
+
+    <!-- 3. Quest in progress -->
+    <section id="screen-active" class="screen active" hidden>
+      <p class="mission">Your mission has begun.</p>
+      <h1 class="putaway">Put your phone away.</h1>
+      <p id="timer" class="timer" role="timer" aria-live="off">00:00</p>
+      <div class="active-quest">
+        <h2 id="active-title"></h2>
+        <p id="active-action"></p>
+      </div>
+      <p id="active-error" class="status error" role="alert"></p>
+      <button class="btn primary wide" id="finish" type="button">I did it</button>
+      <button class="link light" id="cancel" type="button">Not now</button>
+    </section>
+
+    <!-- 4. Done -->
+    <section id="screen-done" class="screen" hidden>
+      <div class="paper done">
+        <h1 id="done-title">Quest complete</h1>
+        <p class="xp-big" id="done-xp"></p>
+        <p id="done-summary" class="hint"></p>
+        <button class="btn primary wide" id="next" type="button">Next quest</button>
+      </div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

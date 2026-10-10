@@ -81,6 +81,35 @@ def completed_types_today(now):
         if item.get("date") == today
     ]
 
+INTEREST_MAP = {
+    "astronomy": "sky",
+    "stars": "sky",
+    "stargazing": "sky",
+    "sky": "sky",
+    "running": "movement",
+    "run": "movement",
+    "fitness": "movement",
+    "exercise": "movement",
+    "movement": "movement",
+    "community": "social",
+    "social": "social",
+    "volunteering": "social",
+    "people": "social",
+    "birds": "nature",
+    "birdwatching": "nature",
+    "wildlife": "nature",
+    "nature": "nature",
+    "outdoors": "nature",
+    "exploring": "exploration",
+    "exploration": "exploration",
+    "adventure": "exploration",
+}
+
+
+def preferred_types(interests):
+    return sorted({INTEREST_MAP[i.lower()] for i in (interests or []) if i.lower() in INTEREST_MAP})
+
+
 def nearest_event(
     lat,
     lon,
@@ -95,29 +124,7 @@ def nearest_event(
     events = load_events() if events is None else events
     interests = interests or []
 
-    interest_map = {
-        "astronomy": "sky",
-        "stars": "sky",
-        "stargazing": "sky",
-        "sky": "sky",
-        "running": "movement",
-        "run": "movement",
-        "fitness": "movement",
-        "exercise": "movement",
-        "movement": "movement",
-        "community": "social",
-        "social": "social",
-        "volunteering": "social",
-        "people": "social",
-        "birds": "nature",
-        "birdwatching": "nature",
-        "wildlife": "nature",
-        "nature": "nature",
-        "outdoors": "nature",
-        "exploring": "exploration",
-        "exploration": "exploration",
-        "adventure": "exploration",
-    }
+    interest_map = INTEREST_MAP
 
     preferred_types = {
         interest_map[i.lower()]
@@ -128,6 +135,9 @@ def nearest_event(
     candidates = []
 
     for e in events:
+        if e.get("placeholder", False):
+            continue
+
         start = datetime.fromisoformat(e["start"]).replace(tzinfo=now.tzinfo)
         hours_until = (start - now).total_seconds() / 3600
 
@@ -202,6 +212,7 @@ def assemble_context(
         "weather": weather,
         "weather_guidance": guidance,
         "sky": {
+            "sunrise": sunrise.strftime("%H:%M"),
             "sunset": sunset.strftime("%H:%M"),
             "minutes_to_sunset": minutes_to_sunset,
         },
@@ -218,8 +229,9 @@ def assemble_context(
 
 def fetch_weather(lat, lon):
     params = {
-        "latitude": lat,
-        "longitude": lon,
+        # Only ~1 km precision leaves the device for the weather lookup.
+        "latitude": round(lat, 2),
+        "longitude": round(lon, 2),
         "current": (
             "temperature_2m,weather_code,cloud_cover,"
             "wind_speed_10m,precipitation"
@@ -284,6 +296,7 @@ def build_context(
     prefers_short=True,
     sim_weather=None,
     sim_time=None,
+    use_events=True,
 ):
     """Real context: live weather from Open-Meteo. sim_* args are for demos/tests."""
 
@@ -319,7 +332,7 @@ def build_context(
 
     completed_today = completed_types_today(now)
 
-    event = nearest_event(lat, lon, now, interests=interests)
+    event = nearest_event(lat, lon, now, interests=interests) if use_events else None
 
     if event and event["quest_type"] in completed_today:
         event = None

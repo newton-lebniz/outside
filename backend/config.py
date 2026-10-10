@@ -9,6 +9,6 @@ OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 
 MODEL = os.getenv("OUTSIDE_MODEL", "gemma3:1b")
 
-DEFAULT_LAT = 12.2958
-DEFAULT_LON = 76.6394
-DEFAULT_PLACE = "Mysuru, India"
+DEFAULT_LAT = 16.2076
+DEFAULT_LON = 77.3463
+DEFAULT_PLACE = "Raichur, Karnataka, India"

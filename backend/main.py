@@ -1,4 +1,5 @@
 import json
+import threading
 from datetime import datetime
 from pathlib import Path
 
@@ -8,8 +9,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from .config import BASE_DIR, COMPLETIONS_PATH, MODEL
+from .config import BASE_DIR, COMPLETIONS_PATH, DEFAULT_LAT, DEFAULT_LON, DEFAULT_PLACE, MODEL
 from .context import build_context, load_completions
+from .llm import warm_up
 from .quest_engine import generate_quest
 
 app = FastAPI(title="Outside API")
@@ -18,11 +20,20 @@ app = FastAPI(title="Outside API")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 
+@app.on_event("startup")
+def _warm_model():
+    threading.Thread(target=warm_up, daemon=True).start()
+
+
 class QuestRequest(BaseModel):
     interests: list[str] = Field(default_factory=list)
+    lat: float = DEFAULT_LAT
+    lon: float = DEFAULT_LON
+    place: str = DEFAULT_PLACE
     sim_weather: str | None = None   # clear | cloudy | rain | hot
     sim_time: str | None = None      # "19:42"
-    use_llm: bool = True
+    use_llm: bool = True             # False = rule-based baseline
+    use_events: bool = True          # False = ignore nearby events (demo control)
 
 
 class CompleteQuestRequest(BaseModel):
@@ -57,14 +68,18 @@ def stats():
 def create_quest(request: QuestRequest):
     try:
         ctx = build_context(
+            lat=request.lat,
+            lon=request.lon,
+            place=request.place,
             interests=request.interests,
             sim_weather=request.sim_weather,
             sim_time=request.sim_time,
+            use_events=request.use_events,
         )
     except KeyError:
         raise HTTPException(400, "sim_weather must be one of: clear, cloudy, rain, hot")
     except (httpx.HTTPError, OSError) as e:
-        raise HTTPException(503, f"Could not fetch weather: {e}")
+        raise HTTPException(503, f"Could not fetch weather ({type(e).__name__}). Check your internet connection.")
 
     result = generate_quest(ctx, use_llm=request.use_llm)
     return {**result, "context": ctx}
@@ -83,7 +98,7 @@ def complete_quest(request: CompleteQuestRequest):
     return {"status": "completed", "quest_type": request.quest_type, **_stats()}
 
 
-# Serve the frontend (added on Day 2) from /frontend if the folder exists.
+# Serve the frontend from /frontend. Mounted last so the API routes above win.
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
 if FRONTEND_DIR.exists():
     app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
