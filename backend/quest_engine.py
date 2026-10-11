@@ -1,3 +1,4 @@
+import re
 import time
 
 from .config import MODEL
@@ -23,6 +24,32 @@ Rules:
 Reply with JSON only."""
 
 
+ALL_TYPES = ["movement", "nature", "social", "sky", "exploration"]
+SKY_WORDS = re.compile(r"\b(sunset|stargaz\w*|stars?|moon|planets?|jupiter|constellations?|milky way)\b", re.I)
+
+
+def allowed_types(ctx):
+    """Quest types that make sense right now. Used in the prompt AND to validate the model's answer."""
+    w, s = ctx["weather"], ctx["sky"]
+    done = ctx["today"]["completed_types"]
+    sky_ok = ctx.get("weather_guidance", {}).get("sky_ok", True)
+    allowed = list(ALL_TYPES)
+    if not sky_ok or w["cloud_cover"] >= 70 or is_wet(w):
+        allowed.remove("sky")
+    elif w["is_day"] and not (0 <= s["minutes_to_sunset"] <= 60):
+        allowed.remove("sky")
+    if "movement" in done or w["temp_c"] >= 33:
+        allowed.remove("movement")
+    return allowed
+
+
+def normalize_type(q):
+    """Small models often label a sunset or stargazing quest 'nature'. Fix the label so the sky rules apply."""
+    if q.quest_type != "sky" and SKY_WORDS.search(f"{q.title} {q.action}"):
+        return "sky"
+    return q.quest_type
+
+
 def context_to_prompt(ctx):
     w, s, u = ctx["weather"], ctx["sky"], ctx["user"]
     ev = ctx["nearby_event"]
@@ -43,6 +70,10 @@ def context_to_prompt(ctx):
         f"USER INTERESTS: {', '.join(u['interests']) or 'none given'}",
         f"USER PREFERS: {'short activities' if u['prefers_short'] else 'any length'}",
     ]
+    lines.append(f"ALLOWED QUEST TYPES (pick one): {', '.join(allowed_types(ctx))}")
+    if not w["is_day"]:
+        lines.append("NIGHT NOTE: it is dark. Do not suggest anything that needs daylight, such as shade, "
+                     "shadows, sunlight or views.")
     pref = preferred_types(u["interests"])
     if pref:
         lines.append(
@@ -84,16 +115,10 @@ def validate(q, ctx):
             return f"special quest must mention the exact event title '{ev['title']}'"
         return None
 
-    w, s, u = ctx["weather"], ctx["sky"], ctx["user"]
-    done = ctx["today"]["completed_types"]
-    sky_ok = ctx.get("weather_guidance", {}).get("sky_ok", True)
-    if q.quest_type == "sky":
-        if not sky_ok or w["cloud_cover"] >= 70 or is_wet(w):
-            return "sky quest not allowed: cloudy or wet"
-        if w["is_day"] and not (0 <= s["minutes_to_sunset"] <= 60):
-            return "sky quest not allowed in daytime unless sunset is within 60 minutes"
-    if q.quest_type == "movement" and ("movement" in done or w["temp_c"] >= 33):
-        return "movement quest not allowed: already done today or too hot"
+    w, u = ctx["weather"], ctx["user"]
+    allowed = allowed_types(ctx)
+    if q.quest_type not in allowed:
+        return f"quest_type '{q.quest_type}' is not allowed right now. Allowed: {', '.join(allowed)}"
     if is_wet(w) and q.duration_minutes > 20:
         return "quest too long for wet weather"
     if u["prefers_short"] and q.duration_minutes > 30:
@@ -115,6 +140,8 @@ def generate_quest(ctx, use_llm=True):
             try:
                 raw = generate_json(SYSTEM_PROMPT, prompt, LLMQuest.model_json_schema())
                 q = LLMQuest.model_validate(raw)
+                if not ctx["nearby_event"]:
+                    q.quest_type = normalize_type(q)
             except Exception as e:  # Ollama down, bad JSON, schema mismatch
                 meta["last_error"] = f"model error: {str(e)[:150]}"
                 feedback = "\n\nYour previous reply was invalid JSON for the schema. Try again."
