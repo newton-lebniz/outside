@@ -97,4 +97,4 @@ results/           model test runs and the comparison table
 
 ## Challenge notes
 
-The repository was started on Oct 8, 2026, inside the challenge window. Commits made after the Oct 11, 2026 11:59 PM PDT deadline: none yet. (Edit this line if that changes.)
+The repository was started on Oct 8, 2026, inside the challenge window. Commits made after the Oct 11, 2026 11:59 PM PDT deadline: none yet. 
